@@ -90,6 +90,28 @@ credit-risk-analytics/
 
 ---
 
+## Methodology and Industry Context
+
+### Why Temporal Validation Instead of Random Split?
+In credit risk modeling, random train/test splits violate a fundamental principle — a model built today will be used to score future applicants, not randomly sampled past applicants. Basel II explicitly requires **out-of-time validation** where the model is trained on historical data and validated on a more recent holdout period. Using 2007-2015 for training and 2016-2018 for testing replicates real production conditions and provides an honest estimate of how the model will perform on new loan applications.
+
+### Why Weight of Evidence (WoE) Encoding?
+WoE encoding is the industry standard for credit scorecard development, used by banks since the 1950s. It has three key advantages over one-hot encoding for credit applications: it handles missing values naturally by treating them as a separate bin, it captures monotonic relationships between categorical variables and default probability, and it directly measures the predictive power of each category through Information Value (IV). The IV threshold (0.1 for medium, 0.3 for strong predictors) is a well-established industry benchmark documented in Basel II internal ratings-based guidance.
+
+### Why Two-Stage LGD Modeling?
+Loss Given Default has a bimodal distribution — a significant proportion of defaulted loans result in either total loss (LGD = 1) or near-full recovery (LGD close to 0), with a continuous distribution in between. A single regression model poorly captures this bimodal behavior. The two-stage approach (classification first, then regression on partial recovery cases) is described in the Basel Committee on Banking Supervision working paper on LGD estimation and is implemented by major banks including in their IFRS 9 models.
+
+### Why Grade-Level LGD and EAD Instead of Loan-Level Regression?
+Basel II Foundation IRB approach permits the use of supervisory estimates for LGD and EAD for retail exposures when loan-level recovery data is limited. The Lending Club dataset records total payments received but does not capture post-default collection costs, time value of recoveries, or workout expenses — all of which are required for accurate loan-level LGD regression. Using grade-level historical averages is consistent with the Foundation IRB approach and is standard practice for homogeneous retail loan portfolios where individual recovery drivers are not fully observable in the data.
+
+### Why PSI for Model Monitoring?
+Population Stability Index is the standard metric for credit model monitoring in retail banking, documented in OCC guidance on model risk management (SR 11-7). Unlike accuracy metrics which require knowing actual outcomes (which take months or years to realize for loans), PSI measures score distribution shift immediately using only the input score distribution. Banks typically run PSI monthly or quarterly — PSI below 0.1 indicates stability, 0.1-0.2 warrants investigation, and above 0.2 triggers model recalibration.
+
+### Why SHAP for Explainability?
+Regulatory frameworks including GDPR Article 22 (right to explanation for automated decisions) and the Equal Credit Opportunity Act (ECOA) require that credit decisions be explainable at the individual loan level. SHAP (SHapley Additive exPlanations) is grounded in cooperative game theory and provides the only attribution method that satisfies all three desirable properties simultaneously: local accuracy, missingness, and consistency. It is model-agnostic and has become the industry standard for explainable AI in banking since its adoption in the Federal Reserve's guidance on fair lending model validation.
+
+---
+
 ## Key Concepts
 
 **Basel II Compliance**
